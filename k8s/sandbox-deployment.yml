@@ -16,7 +16,7 @@ spec:
     spec:
       serviceAccountName: resource-manager
       containers:
-        - image: sandbox:latest
+        - image: localhost/sandbox:v2
           name: main-sandbox-container
           imagePullPolicy: IfNotPresent
           resources:
@@ -28,13 +28,13 @@ spec:
               memory: "200Mi"
           livenessProbe:
             httpGet:
-              path: api/sandbox/health
+              path: /api/sandbox/health
               port: 3000
             initialDelaySeconds: 90
             timeoutSeconds: 10
           readinessProbe:
             httpGet:
-              path: api/sandbox/health
+              path: /api/sandbox/health
               port: 3000
             initialDelaySeconds: 30
             timeoutSeconds: 10
