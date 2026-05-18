@@ -2,7 +2,8 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon -L server.js",
@@ -11,10 +12,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "@kubernetes/client-node": "^1.4.0",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "mongoose": "^9.6.2",
     "morgan": "^1.10.1",
     "uuid": "^14.0.0"
   },
