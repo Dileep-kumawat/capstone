@@ -76,7 +76,7 @@ export default function Terminal({ sandboxId }) {
       const socket = io(agentHost, {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
+        reconnectionDelay: 3000,
       })
 
       socketRef.current = socket
