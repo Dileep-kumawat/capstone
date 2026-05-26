@@ -63,7 +63,6 @@ export async function createPod(sandboxId, projectId) {
                         }
                     ]
                 },
-                // s3 used here by sync container
                 {
                     image: "sync-agent",
                     imagePullPolicy: "IfNotPresent",
@@ -85,33 +84,14 @@ export async function createPod(sandboxId, projectId) {
                             value: projectId
                         },
                         {
-                            name: "AWS_ACCESS_KEY_ID",
+                            name: "MongoDB_URI",
                             valueFrom: {
                                 secretKeyRef: {
-                                    name: "aws",
-                                    key: "AWS_ACCESS_KEY_ID"
+                                    name: "database",
+                                    key: "SYNC-AGENT"
                                 }
                             }
                         },
-                        {
-                            name: "AWS_SECRET_ACCESS_KEY",
-                            valueFrom: {
-                                secretKeyRef: {
-                                    name: "aws",
-                                    key: "AWS_SECRET_ACCESS_KEY"
-                                }
-                            }
-
-                        },
-                        {
-                            name: "AWS_REGION",
-                            valueFrom: {
-                                secretKeyRef: {
-                                    name: "aws",
-                                    key: "AWS_REGION"
-                                }
-                            }
-                        }
                     ]
                 }
             ]

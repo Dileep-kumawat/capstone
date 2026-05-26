@@ -1,116 +1,124 @@
 import "dotenv/config";
-import chokidar from 'chokidar';
-import { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
-import fs from 'fs';
-import path from 'path';
+import chokidar from "chokidar";
+import { MongoClient, GridFSBucket } from "mongodb";
+import fs from "fs";
+import path from "path";
+import { Readable } from "stream";
 
-const s3Client = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
-});
-
+const MONGO_URI = process.env.MongoDB_URI;
 const projectId = process.env.PROJECT_ID;
-const bucketName = "cohort-codespace-bucket";
-const localDirectory = '/workspace';
+const localDirectory = "/workspace";
+const BUCKET_NAME = "project_files";
 
-async function checkS3ForFiles() {
-    console.log(`Checking S3 for existing files in project: ${projectId}`);
-    const listCommand = new ListObjectsV2Command({
-        Bucket: bucketName,
-        Prefix: `${projectId}/`
-    });
-    const listResponse = await s3Client.send(listCommand);
-    return listResponse.Contents || [];
+let db;
+let bucket;
+
+async function connectMongo() {
+    const client = new MongoClient(MONGO_URI);
+    await client.connect();
+    db = client.db();
+    bucket = new GridFSBucket(db, { bucketName: BUCKET_NAME });
+    console.log("Connected to MongoDB");
 }
 
-async function downloadFilesFromS3(s3Objects) {
-    console.log("Found existing files in S3. Syncing to local directory...");
-    for (const file of s3Objects) {
-        // Skip if it is a directory placeholder
-        if (file.Key.endsWith('/')) continue;
+// ─── equivalent to checkS3ForFiles ───────────────────────────────────────────
+async function checkMongoForFiles() {
+    console.log(`Checking MongoDB for existing files in project: ${projectId}`);
+    const files = await bucket
+        .find({ "metadata.projectId": projectId })
+        .toArray();
+    return files; // [] when project is brand-new
+}
 
-        const getCommand = new GetObjectCommand({
-            Bucket: bucketName,
-            Key: file.Key
-        });
-        const getResponse = await s3Client.send(getCommand);
-
-        const relativePath = file.Key.replace(`${projectId}/`, '');
+// ─── equivalent to downloadFilesFromS3 ───────────────────────────────────────
+async function downloadFilesFromMongo(mongoFiles) {
+    console.log("Found existing files in MongoDB. Syncing to local directory...");
+    for (const file of mongoFiles) {
+        const relativePath = file.metadata.relativePath;
         const localFilePath = path.join(localDirectory, relativePath);
 
-        // Ensure the local directory structure exists
         fs.mkdirSync(path.dirname(localFilePath), { recursive: true });
 
-        const writeStream = fs.createWriteStream(localFilePath);
-        getResponse.Body.pipe(writeStream);
+        await new Promise((resolve, reject) => {
+            const downloadStream = bucket.openDownloadStream(file._id);
+            const writeStream = fs.createWriteStream(localFilePath);
+            downloadStream.pipe(writeStream);
+            writeStream.on("finish", resolve);
+            writeStream.on("error", reject);
+            downloadStream.on("error", reject);
+        });
+
+        console.log(`Downloaded ${relativePath} to ${localFilePath}`);
+    }
+}
+
+// ─── equivalent to uploadFileToS3 ────────────────────────────────────────────
+async function uploadFileToMongo(filePath) {
+    try {
+        if (filePath.includes("node_modules") || filePath.includes(".env")) return;
+
+        const relativePath = path.relative(localDirectory, filePath);
+        console.log(`Uploading: ${filePath}`);
+
+        // Delete the old version first (GridFS keeps multiple revisions otherwise)
+        const existing = await bucket
+            .find({ "metadata.projectId": projectId, "metadata.relativePath": relativePath })
+            .toArray();
+        for (const old of existing) {
+            await bucket.delete(old._id);
+        }
+
+        const readStream = fs.createReadStream(filePath);
+        const uploadStream = bucket.openUploadStream(relativePath, {
+            metadata: { projectId, relativePath },
+        });
 
         await new Promise((resolve, reject) => {
-            writeStream.on('finish', resolve);
-            writeStream.on('error', reject);
+            readStream.pipe(uploadStream);
+            uploadStream.on("finish", resolve);
+            uploadStream.on("error", reject);
+            readStream.on("error", reject);
         });
 
-        console.log(`Downloaded ${file.Key} to ${localFilePath}`);
-    }
-}
-
-async function uploadFileToS3(filePath) {
-    try {
-        const fileContent = fs.readFileSync(filePath);
-        const relativePath = path.relative(localDirectory, filePath);
-
-        if (filePath.includes('node_modules') || filePath.includes('.env')) {
-            return; // Skip syncing node_modules and .env files
-        }
-
-        console.log(filePath)
-        // Files will have the prefix of projectId
-        const s3Key = `${projectId}/${relativePath}`;
-
-        const command = new PutObjectCommand({
-            Bucket: bucketName,
-            Key: s3Key,
-            Body: fileContent
-        });
-
-        await s3Client.send(command);
-        console.log(`Successfully synced ${filePath} to s3://${bucketName}/${s3Key}`);
+        console.log(`Successfully synced ${relativePath} to MongoDB`);
     } catch (err) {
-        console.error(`Error syncing ${filePath} to S3:`, err);
+        console.error(`Error syncing ${filePath} to MongoDB:`, err);
     }
 }
 
+// ─── watcher (unchanged logic) ────────────────────────────────────────────────
 function startWatcher(hasFiles) {
     console.log("Starting chokidar watch...");
-    chokidar.watch(localDirectory, {
-        ignored: [
-            /(^|[\/\\])\../, // ignore dotfiles
-            /node_modules/,  // ignore node_modules completely
-            /\.env/          // ignore .env files
-        ],
-        persistent: true,
-        ignoreInitial: hasFiles // if S3 is empty (hasFiles is false), upload all existing local files
-    }).on('all', async (event, filePath) => {
-        if (event === 'add' || event === 'change') {
-            if (filePath.includes('node_modules') || filePath.includes('.env')) {
-                return; // Skip syncing node_modules and .env files
+    chokidar
+        .watch(localDirectory, {
+            ignored: [
+                /(^|[\/\\])\../,  // dotfiles
+                /node_modules/,
+                /\.env/,
+            ],
+            persistent: true,
+            ignoreInitial: hasFiles,
+        })
+        .on("all", async (event, filePath) => {
+            if (event === "add" || event === "change") {
+                if (filePath.includes("node_modules") || filePath.includes(".env")) return;
+                await uploadFileToMongo(filePath);
             }
-            await uploadFileToS3(filePath);
-        }
-    });
+        });
 }
 
+// ─── init ─────────────────────────────────────────────────────────────────────
 async function init() {
     try {
-        const s3Objects = await checkS3ForFiles();
-        const hasFiles = s3Objects.length > 0;
+        await connectMongo();
+
+        const mongoFiles = await checkMongoForFiles();
+        const hasFiles = mongoFiles.length > 0;
 
         if (hasFiles) {
-            await downloadFilesFromS3(s3Objects);
+            await downloadFilesFromMongo(mongoFiles);
         } else {
-            console.log("No files found in S3. Local files will be synced to S3 automatically.");
+            console.log("No files found in MongoDB. Local files will be synced automatically.");
         }
 
         startWatcher(hasFiles);
