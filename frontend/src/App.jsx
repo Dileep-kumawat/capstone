@@ -6,6 +6,7 @@ import PreviewFrame from './components/PreviewFrame'
 import FileViewer from './components/FileViewer'
 import Terminal from './components/Terminal'
 import AiChat from './components/AiChat'
+import MobileOverlay from './components/MobileOverlay'
 
 export default function App() {
   // Sandbox state
@@ -63,7 +64,12 @@ export default function App() {
 
   // Landing / splash
   if (!sandbox) {
-    return <SplashScreen onSandboxCreated={handleSandboxCreated} />
+    return (
+      <>
+        <MobileOverlay />
+        <SplashScreen onSandboxCreated={handleSandboxCreated} />
+      </>
+    )
   }
 
   const { sandboxId, previewUrl, agentBase } = sandbox
@@ -71,6 +77,9 @@ export default function App() {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden"
       style={{ background: '#070b14' }}>
+
+      {/* Mobile screen-size gate */}
+      <MobileOverlay />
 
       {/* Top bar */}
       <TopBar

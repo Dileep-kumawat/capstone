@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react'
 import { apiFetch } from '../utils/api'
 
 export default function SplashScreen({ onSandboxCreated }) {
-  const [ loading, setLoading ] = useState(false)
-  const [ loadingProjectId, setLoadingProjectId ] = useState(null) // id being opened
-  const [ error, setError ] = useState(null)
-  const [ dots, setDots ] = useState('')
-  const [ title, setTitle ] = useState('')
-  const [ loadingStep, setLoadingStep ] = useState('') // 'project' | 'sandbox'
+  const [loading, setLoading] = useState(false)
+  const [loadingProjectId, setLoadingProjectId] = useState(null) // id being opened
+  const [error, setError] = useState(null)
+  const [dots, setDots] = useState('')
+  const [title, setTitle] = useState('')
+  const [loadingStep, setLoadingStep] = useState('') // 'project' | 'sandbox'
 
   // Existing projects
-  const [ projects, setProjects ] = useState([])
-  const [ projectsLoading, setProjectsLoading ] = useState(true)
-  const [ showDropdown, setShowDropdown ] = useState(false)
+  const [projects, setProjects] = useState([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [showDropdown, setShowDropdown] = useState(false)
 
   // Fetch existing projects on mount
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function SplashScreen({ onSandboxCreated }) {
       setDots(d => d.length >= 3 ? '' : d + '.')
     }, 400)
     return () => clearInterval(interval)
-  }, [ loading ])
+  }, [loading])
 
   // Start sandbox for an existing project
   const handleOpenProject = async (projectId) => {
@@ -127,7 +127,7 @@ export default function SplashScreen({ onSandboxCreated }) {
       />
 
       {/* Floating particles */}
-      {[ ...Array(12) ].map((_, i) => (
+      {[...Array(12)].map((_, i) => (
         <div key={i}
           className="absolute rounded-full opacity-20"
           style={{
@@ -183,7 +183,7 @@ export default function SplashScreen({ onSandboxCreated }) {
 
         {/* Feature pills */}
         <div className="flex flex-wrap justify-center gap-2">
-          {[ 'AI-Powered', 'Live Preview', 'Terminal Access', 'File Explorer' ].map(f => (
+          {['AI-Powered', 'Live Preview', 'Terminal Access', 'File Explorer'].map(f => (
             <span key={f} className="px-3 py-1 text-xs font-medium rounded-full"
               style={{
                 background: 'rgba(34,211,238,0.08)',
@@ -292,10 +292,10 @@ export default function SplashScreen({ onSandboxCreated }) {
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                   style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.15)' }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
                   </svg>
                 </div>
                 <span className="text-sm font-medium" style={{ color: '#94a3b8' }}>
@@ -350,7 +350,7 @@ export default function SplashScreen({ onSandboxCreated }) {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2"
                           style={{ transition: 'stroke 0.2s' }}
                           className="group-hover:stroke-cyan-400">
-                          <polygon points="5 3 19 12 5 21 5 3"/>
+                          <polygon points="5 3 19 12 5 21 5 3" />
                         </svg>
                       )}
                     </div>
