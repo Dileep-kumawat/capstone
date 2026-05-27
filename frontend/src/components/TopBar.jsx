@@ -1,4 +1,7 @@
+import { useAuth } from './AuthContext'
+
 export default function TopBar({ sandboxId, activeTab, onTabChange, status }) {
+  const { user, logout } = useAuth()
   const shortId = sandboxId ? sandboxId.slice(0, 8) + '…' : ''
 
   const statusConfig = {
@@ -65,8 +68,9 @@ export default function TopBar({ sandboxId, activeTab, onTabChange, status }) {
         ))}
       </div>
 
-      {/* Right — status */}
-      <div className="flex items-center gap-3">
+      {/* Right — status & profile */}
+      <div className="flex items-center gap-4">
+        {/* Status */}
         <div className="flex items-center gap-1.5">
           {s.dot ? (
             <div className="w-2 h-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 8px ${s.color}` }} />
@@ -76,6 +80,56 @@ export default function TopBar({ sandboxId, activeTab, onTabChange, status }) {
           )}
           <span className="text-xs" style={{ color: s.color }}>{s.label}</span>
         </div>
+
+        {/* Vertical divider */}
+        {user && <div className="w-px h-4 bg-[#1e2d45]" />}
+
+        {/* User Info & Logout */}
+        {user && (
+          <div className="flex items-center gap-3 animate-fadeIn">
+            {/* User Profile Info */}
+            <div className="flex items-center gap-2">
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-6 h-6 rounded-full border border-cyan-400/30"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border border-cyan-400/30"
+                     style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee' }}>
+                  {user.name ? user.name.slice(0, 2).toUpperCase() : 'US'}
+                </div>
+              )}
+              <div className="hidden md:flex flex-col text-left">
+                <span className="text-xs font-semibold" style={{ color: '#cbd5e1', lineHeight: '1.2' }}>{user.name}</span>
+                <span className="text-[10px]" style={{ color: '#475569', lineHeight: '1.2' }}>{user.email}</span>
+              </div>
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={logout}
+              className="px-2.5 py-1 text-xs rounded border transition-all duration-200 cursor-pointer"
+              style={{
+                background: 'rgba(239,68,68,0.06)',
+                borderColor: 'rgba(239,68,68,0.2)',
+                color: '#fca5a5'
+              }}
+              onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(239,68,68,0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)';
+              }}
+              onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(239,68,68,0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)';
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </header>
   )

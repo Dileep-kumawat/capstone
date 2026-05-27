@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { apiFetch } from '../utils/api'
 
 const FILE_ICONS = {
   jsx: '⚛', tsx: '⚛', js: '🟡', ts: '🔷',
@@ -96,11 +97,7 @@ export default function FileExplorer({ agentBase, activeFile, onFileSelect, refr
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${agentBase}/list-files`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
+      const res = await apiFetch(`${agentBase}/list-files`)
       const data = await res.json()
       setFiles(data.files || [])
       setTree(buildTree(data.files || []))

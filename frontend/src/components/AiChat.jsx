@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { apiFetch } from '../utils/api'
 
 function TypingIndicator() {
   return (
@@ -113,11 +114,10 @@ export default function AiChat({ sandboxId, onFilesChanged }) {
 
     try {
       // Use fetch with SSE manually
-      const response = await fetch('/api/ai/invoke', {
+      const response = await apiFetch('/api/ai/invoke', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ message: text, projectId: sandboxId })
       })

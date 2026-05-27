@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiFetch } from '../utils/api'
 
 const LANGUAGE_MAP = {
   js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript',
@@ -23,11 +24,7 @@ export default function FileViewer({ agentBase, filePath }) {
       setError(null)
       setContent(null)
       try {
-        const res = await fetch(`${agentBase}/read-files?files=${encodeURIComponent(filePath)}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        const res = await apiFetch(`${agentBase}/read-files?files=${encodeURIComponent(filePath)}`)
         const data = await res.json()
         const fileData = data.files?.[0]
         if (fileData) {

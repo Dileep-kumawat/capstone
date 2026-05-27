@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiFetch } from '../utils/api'
 
 export default function SplashScreen({ onSandboxCreated }) {
   const [ loading, setLoading ] = useState(false)
@@ -16,11 +17,7 @@ export default function SplashScreen({ onSandboxCreated }) {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch('/api/sandbox/project', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        const res = await apiFetch('/api/sandbox/project')
         if (res.ok) {
           const data = await res.json()
           setProjects(data.projects || [])
@@ -48,11 +45,10 @@ export default function SplashScreen({ onSandboxCreated }) {
     setLoadingProjectId(projectId)
     setError(null)
     try {
-      const sandboxRes = await fetch('/api/sandbox/start', {
+      const sandboxRes = await apiFetch('/api/sandbox/start', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ projectId })
       })
@@ -77,11 +73,10 @@ export default function SplashScreen({ onSandboxCreated }) {
     try {
       // Step 1: Create the project
       setLoadingStep('project')
-      const projectRes = await fetch('/api/sandbox/project', {
+      const projectRes = await apiFetch('/api/sandbox/project', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ title: projectTitle })
       })
@@ -91,11 +86,10 @@ export default function SplashScreen({ onSandboxCreated }) {
 
       // Step 2: Start the sandbox
       setLoadingStep('sandbox')
-      const sandboxRes = await fetch('/api/sandbox/start', {
+      const sandboxRes = await apiFetch('/api/sandbox/start', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ projectId })
       })
