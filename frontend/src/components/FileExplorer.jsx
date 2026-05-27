@@ -86,34 +86,57 @@ function TreeNode({ name, node, depth, agentBase, activeFile, onFileSelect, path
   )
 }
 
-export default function FileExplorer({ agentBase, activeFile, onFileSelect, refreshKey }) {
+export default function FileExplorer({ agentBase, activeFile, onFileSelect, refreshKey, podReady, setPodReady }) {
   const [files, setFiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [tree, setTree] = useState({})
 
-  const fetchFiles = useCallback(async () => {
-    if (!agentBase) return
-    setLoading(true)
+  const fetchFiles = useCallback(async (isSilent = false) => {
+    const silent = isSilent === true
+    if (!agentBase) return false
+    if (!silent) {
+      setLoading(true)
+    }
     setError(null)
     try {
       const res = await apiFetch(`${agentBase}/list-files`)
+      if (!res.ok) {
+        throw new Error('Failed to fetch')
+      }
       const data = await res.json()
-      setFiles(data.files || [])
-      setTree(buildTree(data.files || []))
+      const fileList = data.files || []
+      setFiles(fileList)
+      setTree(buildTree(fileList))
+      setPodReady(true)
+      return true
     } catch {
       setError('Failed to load files')
+      return false
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }, [agentBase])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchFiles()
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [fetchFiles, refreshKey])
+    setPodReady(false)
+  }, [agentBase, refreshKey])
+
+  useEffect(() => {
+    if (!agentBase || podReady) return
+
+    // Perform the initial non-silent load
+    fetchFiles(false)
+
+    // Poll every 3 seconds silently until the pod is ready and files are loaded
+    const interval = setInterval(() => {
+      fetchFiles(true)
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [agentBase, podReady, fetchFiles])
 
   return (
     <aside className="flex flex-col h-full"

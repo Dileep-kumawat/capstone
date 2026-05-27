@@ -11,6 +11,7 @@ export default function App() {
   // Sandbox state
   const [sandbox, setSandbox] = useState(null) // { sandboxId, previewUrl, agentBase }
   const [status, setStatus] = useState('ready')
+  const [podReady, setPodReady] = useState(false)
 
   // UI state
   const [activeTab, setActiveTab] = useState('preview') // 'preview' | 'files'
@@ -27,6 +28,7 @@ export default function App() {
     const agentBase = `http://${data.sandboxId}.agent.localhost`
     setSandbox({ sandboxId: data.sandboxId, previewUrl: data.previewUrl, agentBase })
     setStatus('ready')
+    setPodReady(false)
   }, [])
 
   const handleFilesChanged = useCallback(() => {
@@ -87,6 +89,8 @@ export default function App() {
           activeFile={activeFile}
           onFileSelect={handleFileSelect}
           refreshKey={fileRefreshKey}
+          podReady={podReady}
+          setPodReady={setPodReady}
         />
 
         {/* Center — main content + terminal */}
@@ -95,7 +99,7 @@ export default function App() {
           {/* Main content area */}
           <div className="flex-1 overflow-hidden">
             {activeTab === 'preview' ? (
-              <PreviewFrame previewUrl={previewUrl} />
+              <PreviewFrame previewUrl={previewUrl} podReady={podReady} />
             ) : (
               <FileViewer agentBase={agentBase} filePath={activeFile} />
             )}
@@ -112,7 +116,7 @@ export default function App() {
 
           {/* Terminal */}
           <div className="shrink-0 overflow-hidden" style={{ height: `${terminalHeight}px` }}>
-            <Terminal sandboxId={sandboxId} />
+            <Terminal sandboxId={sandboxId} podReady={podReady} />
           </div>
         </div>
 
@@ -121,6 +125,7 @@ export default function App() {
           <AiChat
             sandboxId={sandboxId}
             onFilesChanged={handleFilesChanged}
+            podReady={podReady}
           />
         </div>
       </div>

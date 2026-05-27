@@ -77,7 +77,7 @@ function parseActivityLine(line) {
   return { type: 'info', text: line }
 }
 
-export default function AiChat({ sandboxId, onFilesChanged }) {
+export default function AiChat({ sandboxId, onFilesChanged, podReady }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -205,16 +205,32 @@ export default function AiChat({ sandboxId, onFilesChanged }) {
         </div>
         <div>
           <h2 className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>AI Assistant</h2>
-          <p className="text-xs" style={{ color: '#475569' }}>Powered by Gemini</p>
+          <p className="text-xs" style={{ color: '#475569' }}>Powered by MistralAi</p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
-          <span className="text-xs" style={{ color: '#475569' }}>Active</span>
+          <div className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: podReady ? '#10b981' : '#f59e0b',
+              boxShadow: `0 0 6px ${podReady ? '#10b981' : '#f59e0b'}`,
+              animation: podReady ? 'none' : 'pulse 1.5s infinite'
+            }} />
+          <span className="text-xs" style={{ color: podReady ? '#475569' : '#f59e0b' }}>
+            {podReady ? 'Active' : 'Connecting...'}
+          </span>
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-4">
+        {!podReady && (
+          <div className="rounded-lg p-3 text-xs leading-relaxed flex items-start gap-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <span className="shrink-0 animate-spin mt-0.5">⚙️</span>
+            <div>
+              <p className="font-semibold">Development Pod Initializing</p>
+              <p className="text-slate-400 mt-0.5">The AI assistant is waiting for the sandbox container to boot before accepting code modification requests.</p>
+            </div>
+          </div>
+        )}
         {messages.map((msg, i) => (
           <div key={msg.id || i}>
             {msg.pending && !msg.content ? (
@@ -252,8 +268,8 @@ export default function AiChat({ sandboxId, onFilesChanged }) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={sandboxId ? 'Describe what you want to build…' : 'Create a sandbox first…'}
-            disabled={!sandboxId || streaming}
+            placeholder={!podReady ? 'Waiting for pod to start...' : sandboxId ? 'Describe what you want to build…' : 'Create a sandbox first…'}
+            disabled={!sandboxId || !podReady || streaming}
             rows={1}
             className="flex-1 resize-none text-sm outline-none bg-transparent"
             style={{
@@ -270,14 +286,14 @@ export default function AiChat({ sandboxId, onFilesChanged }) {
           />
           <button
             onClick={sendMessage}
-            disabled={!input.trim() || !sandboxId || streaming}
+            disabled={!input.trim() || !sandboxId || !podReady || streaming}
             className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer"
             style={{
-              background: input.trim() && sandboxId && !streaming
+              background: input.trim() && sandboxId && podReady && !streaming
                 ? 'linear-gradient(135deg, #22d3ee, #0891b2)'
                 : 'rgba(255,255,255,0.06)',
-              color: input.trim() && sandboxId && !streaming ? '#070b14' : '#334155',
-              boxShadow: input.trim() && sandboxId && !streaming ? '0 0 15px rgba(34,211,238,0.3)' : 'none'
+              color: input.trim() && sandboxId && podReady && !streaming ? '#070b14' : '#334155',
+              boxShadow: input.trim() && sandboxId && podReady && !streaming ? '0 0 15px rgba(34,211,238,0.3)' : 'none'
             }}>
             {streaming ? (
               <div className="w-4 h-4 rounded-full border-2 border-t-transparent"

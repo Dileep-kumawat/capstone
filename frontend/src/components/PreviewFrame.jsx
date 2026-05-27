@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 
-export default function PreviewFrame({ previewUrl }) {
+export default function PreviewFrame({ previewUrl, podReady }) {
   const iframeRef = useRef(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -67,17 +67,38 @@ export default function PreviewFrame({ previewUrl }) {
         </a>
       </div>
 
-      {/* iFrame */}
-      <div className="flex-1 relative">
-        <iframe
-          key={refreshKey}
-          ref={iframeRef}
-          src={previewUrl}
-          className="w-full h-full border-0"
-          style={{ background: '#fff' }}
-          title="Sandbox Preview"
-          onLoad={() => setLoading(false)}
-        />
+      {/* iFrame or Loading Pod Screen */}
+      <div className="flex-1 relative bg-[#070b14] flex flex-col items-center justify-center ">
+        {!podReady ? (
+          <div className="flex flex-col items-center justify-center text-center max-w-sm animate-pulse">
+            {/* Premium Glowing/Rotating Spinner */}
+            <div className="relative w-16 h-16 mb-6">
+              <div className="absolute inset-0 rounded-full border-4 border-slate-800" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-transparent animate-spin"
+                style={{ borderColor: '#22d3ee', borderTopColor: 'transparent', filter: 'drop-shadow(0 0 8px rgba(34,211,238,0.4))' }} />
+            </div>
+            <h3 className="text-sm font-semibold text-slate-200 mb-2">
+              Starting Development Container
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed mb-4">
+              Please wait while the environment pod initializes and starts the dev server.
+            </p>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/60 border border-slate-800 text-[10px] text-slate-500 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              STATUS: PROVISIONING POD
+            </div>
+          </div>
+        ) : (
+          <iframe
+            key={refreshKey}
+            ref={iframeRef}
+            src={previewUrl}
+            className="w-full h-full border-0"
+            style={{ background: '#fff' }}
+            title="Sandbox Preview"
+            onLoad={() => setLoading(false)}
+          />
+        )}
       </div>
     </div>
   )
