@@ -5,7 +5,20 @@ import morgan from 'morgan';
 const app = express();
 
 // Middleware
-app.use(morgan('dev'));
+const HEALTH_CHECK_PATHS = new Set([
+  "/_status/healthz",
+  "/api/status/healthz",
+  "/api/status/readyz",
+  "/api/sandbox/health",
+]);
+
+app.use(
+  morgan("dev", {
+    skip: (req) =>
+      HEALTH_CHECK_PATHS.has(req.path) ||
+      req.get("user-agent")?.startsWith("kube-probe"),
+  })
+);
 app.use(express.json());
 
 app.get("/api/status/healthz", (req, res) => {

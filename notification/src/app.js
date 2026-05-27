@@ -4,7 +4,20 @@ import { sendEmail } from './email.js';
 import channel from './mq.js';
 
 const app = express();
-app.use(morgan('dev'));
+const HEALTH_CHECK_PATHS = new Set([
+  "/_status/healthz",
+  "/api/status/healthz",
+  "/api/status/readyz",
+  "/api/sandbox/health",
+]);
+
+app.use(
+  morgan("dev", {
+    skip: (req) =>
+      HEALTH_CHECK_PATHS.has(req.path) ||
+      req.get("user-agent")?.startsWith("kube-probe"),
+  })
+);
 
 app.get('/', (req, res) => {
     res.send('Hello from Notification Service!');

@@ -14,7 +14,20 @@ const WORKING_DIR = '/workspace';
 const app = express();
 const httpServer = http.createServer(app);
 
-app.use(morgan('dev'));
+const HEALTH_CHECK_PATHS = new Set([
+  "/_status/healthz",
+  "/api/status/healthz",
+  "/api/status/readyz",
+  "/api/sandbox/health",
+]);
+
+app.use(
+  morgan("dev", {
+    skip: (req) =>
+      HEALTH_CHECK_PATHS.has(req.path) ||
+      req.get("user-agent")?.startsWith("kube-probe"),
+  })
+);
 app.use(cors({
     methods: [ "GET", "POST", "PATCH", "DELETE" ],
     origin: "*",

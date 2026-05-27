@@ -13,7 +13,20 @@ import authRoutes from './routes/auth.routes.js';
 const app = express();
 
 app.use(express.json());
-app.use(morgan('dev'));
+const HEALTH_CHECK_PATHS = new Set([
+  "/_status/healthz",
+  "/api/status/healthz",
+  "/api/status/readyz",
+  "/api/sandbox/health",
+]);
+
+app.use(
+  morgan("dev", {
+    skip: (req) =>
+      HEALTH_CHECK_PATHS.has(req.path) ||
+      req.get("user-agent")?.startsWith("kube-probe"),
+  })
+);
 app.use(cookies());
 app.use(passport.initialize());
 app.use(cors({

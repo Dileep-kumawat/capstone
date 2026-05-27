@@ -6,7 +6,20 @@ import { createProxyServer } from 'httpxy';
 import { refreshTTL } from './config/redis.js';
 
 const app = express();
-app.use(morgan('combined'));
+const HEALTH_CHECK_PATHS = new Set([
+  "/_status/healthz",
+  "/api/status/healthz",
+  "/api/status/readyz",
+  "/api/sandbox/health",
+]);
+
+app.use(
+  morgan("dev", {
+    skip: (req) =>
+      HEALTH_CHECK_PATHS.has(req.path) ||
+      req.get("user-agent")?.startsWith("kube-probe"),
+  })
+);
 
 app.get('/api/status/healthz', (req, res) => {
     res.status(200).json({ status: 'ok' });
