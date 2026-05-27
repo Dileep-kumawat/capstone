@@ -320,6 +320,7 @@ export default function SplashScreen({ onSandboxCreated }) {
               maxHeight: showDropdown ? `${projects.length * 60}px` : '0px',
               opacity: showDropdown ? 1 : 0,
               transition: 'max-height 0.3s ease, opacity 0.25s ease',
+              marginBottom: showDropdown ? '12px' : '0px',
             }}>
               <div className="flex flex-col gap-2 pt-2">
                 {projects.map(project => (

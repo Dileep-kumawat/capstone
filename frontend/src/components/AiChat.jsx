@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { apiFetch } from '../utils/api'
 
 function TypingIndicator() {
@@ -23,14 +24,61 @@ function ActivityLog({ lines }) {
       {lines.map((line, i) => (
         <div key={i} className="flex items-start gap-2 px-2 py-1"
           style={{ borderBottom: i < lines.length - 1 ? '1px solid rgba(30,45,69,0.5)' : 'none' }}>
-          <span className="text-xs shrink-0 mt-px" style={{ color: '#475569' }}>
-            {line.type === 'reading' ? '📖' : line.type === 'updating' ? '✏️' : line.type === 'success' ? '✅' : '💬'}
+          <span className="shrink-0 mt-0.5" style={{ color: line.type === 'success' ? '#10b981' : line.type === 'updating' ? '#f59e0b' : '#475569', lineHeight: 0 }}>
+            {line.type === 'reading' && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              </svg>
+            )}
+            {line.type === 'updating' && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            )}
+            {line.type === 'success' && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            )}
+            {line.type === 'info' && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            )}
           </span>
           <span className="text-xs font-mono break-all" style={{ color: '#64748b' }}>{line.text}</span>
         </div>
       ))}
     </div>
   )
+}
+
+const markdownComponents = {
+  p: ({ children }) => <p style={{ margin: '0 0 0.5em 0', lineHeight: '1.65' }}>{children}</p>,
+  strong: ({ children }) => <strong style={{ color: '#e2e8f0', fontWeight: 600 }}>{children}</strong>,
+  em: ({ children }) => <em style={{ color: '#94a3b8' }}>{children}</em>,
+  h1: ({ children }) => <h1 style={{ color: '#e2e8f0', fontSize: '1.1em', fontWeight: 700, margin: '0.75em 0 0.4em' }}>{children}</h1>,
+  h2: ({ children }) => <h2 style={{ color: '#e2e8f0', fontSize: '1em', fontWeight: 700, margin: '0.65em 0 0.35em' }}>{children}</h2>,
+  h3: ({ children }) => <h3 style={{ color: '#cbd5e1', fontSize: '0.95em', fontWeight: 600, margin: '0.5em 0 0.3em' }}>{children}</h3>,
+  ul: ({ children }) => <ul style={{ margin: '0.4em 0', paddingLeft: '1.4em', listStyleType: 'disc' }}>{children}</ul>,
+  ol: ({ children }) => <ol style={{ margin: '0.4em 0', paddingLeft: '1.4em' }}>{children}</ol>,
+  li: ({ children }) => <li style={{ margin: '0.2em 0', color: '#cbd5e1' }}>{children}</li>,
+  code: ({ inline, children }) =>
+    inline
+      ? <code style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', padding: '0.1em 0.35em', borderRadius: '4px', fontSize: '0.85em', fontFamily: 'monospace' }}>{children}</code>
+      : <code>{children}</code>,
+  pre: ({ children }) => (
+    <pre style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid #1e2d45', borderRadius: '8px', padding: '0.75em 1em', overflowX: 'auto', margin: '0.5em 0', fontSize: '0.82em', fontFamily: 'monospace', color: '#94a3b8' }}>
+      {children}
+    </pre>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote style={{ borderLeft: '3px solid rgba(34,211,238,0.4)', paddingLeft: '0.75em', margin: '0.5em 0', color: '#64748b', fontStyle: 'italic' }}>
+      {children}
+    </blockquote>
+  ),
+  hr: () => <hr style={{ border: 'none', borderTop: '1px solid #1e2d45', margin: '0.75em 0' }} />,
+  a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#22d3ee', textDecoration: 'underline', textDecorationColor: 'rgba(34,211,238,0.4)' }}>{children}</a>,
 }
 
 function Message({ msg }) {
@@ -49,14 +97,18 @@ function Message({ msg }) {
             background: 'linear-gradient(135deg, rgba(34,211,238,0.15), rgba(8,145,178,0.08))',
             border: '1px solid rgba(34,211,238,0.25)',
             color: '#e2e8f0',
-            borderBottomRightRadius: '4px'
+            borderBottomRightRadius: '4px',
+            whiteSpace: 'pre-wrap'
           } : {
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid #1e2d45',
             color: '#cbd5e1',
             borderBottomLeftRadius: '4px'
           }}>
-          {msg.content}
+          {isUser
+            ? msg.content
+            : <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+          }
         </div>
         {msg.activity && msg.activity.length > 0 && (
           <ActivityLog lines={msg.activity} />
@@ -146,12 +198,25 @@ export default function AiChat({ sandboxId, onFilesChanged, podReady }) {
 
         for (const line of lines) {
           if (!line.trim()) continue
-          const parsed = parseActivityLine(line)
-          if (parsed) {
-            activityLines = [...activityLines, parsed]
-            // If looks like final AI text response
-            if (parsed.type === 'info' && line.length > 30) {
-              aiContent = line
+
+          if (line.startsWith('act:')) {
+            const actText = line.substring(4)
+            const parsed = parseActivityLine(actText)
+            if (parsed) {
+              activityLines = [...activityLines, parsed]
+            }
+          } else if (line.startsWith('msg:')) {
+            const msgLine = line.substring(4)
+            aiContent = aiContent ? `${aiContent}\n${msgLine}` : msgLine
+          } else {
+            // Fallback for unexpected or legacy formats
+            const parsed = parseActivityLine(line)
+            if (parsed) {
+              if (parsed.type !== 'info') {
+                activityLines = [...activityLines, parsed]
+              } else {
+                aiContent = aiContent ? `${aiContent}\n${line}` : line
+              }
             }
           }
           updateMsg()

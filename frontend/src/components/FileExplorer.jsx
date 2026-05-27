@@ -1,19 +1,56 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiFetch } from '../utils/api'
+import {
+  Folder,
+  FolderOpen,
+  ChevronRight,
+  FileCode,
+  FileJson,
+  FileText,
+  FileImage,
+  Lock,
+  Terminal,
+  File
+} from 'lucide-react'
 
 const FILE_ICONS = {
-  jsx: '⚛', tsx: '⚛', js: '🟡', ts: '🔷',
-  css: '🎨', html: '🌐', json: '{}', md: '📝',
-  png: '🖼', svg: '🔶', jpg: '🖼', jpeg: '🖼',
-  env: '🔒', gitignore: '🙈', dockerfile: '🐳',
-  default: '📄'
+  jsx: { Icon: FileCode, color: '#61dafb' },
+  tsx: { Icon: FileCode, color: '#3178c6' },
+  js: { Icon: FileCode, color: '#f7df1e' },
+  ts: { Icon: FileCode, color: '#3178c6' },
+  css: { Icon: FileCode, color: '#38bdf8' },
+  html: { Icon: FileCode, color: '#ea580c' },
+  json: { Icon: FileJson, color: '#eab308' },
+  md: { Icon: FileText, color: '#38bdf8' },
+  png: { Icon: FileImage, color: '#10b981' },
+  svg: { Icon: FileImage, color: '#f97316' },
+  jpg: { Icon: FileImage, color: '#10b981' },
+  jpeg: { Icon: FileImage, color: '#10b981' },
+  env: { Icon: Lock, color: '#ef4444' },
+  gitignore: { Icon: FileText, color: '#64748b' },
+  dockerfile: { Icon: Terminal, color: '#0ea5e9' },
+  default: { Icon: File, color: '#94a3b8' }
 }
 
 function getIcon(filename) {
+  const lowercaseName = filename.toLowerCase()
+  
+  if (FILE_ICONS[lowercaseName]) {
+    const { Icon, color } = FILE_ICONS[lowercaseName]
+    return <Icon size={14} style={{ color }} />
+  }
+  
   const parts = filename.split('.')
-  if (parts.length === 1) return FILE_ICONS.default
-  const ext = parts[parts.length - 1].toLowerCase()
-  return FILE_ICONS[ext] || FILE_ICONS.default
+  if (parts.length > 1) {
+    const ext = parts[parts.length - 1].toLowerCase()
+    if (FILE_ICONS[ext]) {
+      const { Icon, color } = FILE_ICONS[ext]
+      return <Icon size={14} style={{ color }} />
+    }
+  }
+  
+  const { Icon, color } = FILE_ICONS.default
+  return <Icon size={14} style={{ color }} />
 }
 
 function buildTree(files) {
@@ -47,8 +84,21 @@ function TreeNode({ name, node, depth, agentBase, activeFile, onFileSelect, path
           }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-          <span className="text-xs transition-transform duration-150" style={{ transform: open ? 'rotate(90deg)' : 'none', display: 'inline-block' }}>▶</span>
-          <span className="mr-1">{open ? '📂' : '📁'}</span>
+          <ChevronRight 
+            size={14} 
+            className="transition-transform duration-150 shrink-0" 
+            style={{ 
+              transform: open ? 'rotate(90deg)' : 'none', 
+              color: '#475569' 
+            }} 
+          />
+          <span className="flex items-center justify-center shrink-0 w-4 h-4">
+            {open ? (
+              <FolderOpen size={14} style={{ color: '#38bdf8' }} />
+            ) : (
+              <Folder size={14} style={{ color: '#38bdf8' }} />
+            )}
+          </span>
           <span className="truncate">{name}</span>
         </button>
         {open && (
@@ -80,7 +130,7 @@ function TreeNode({ name, node, depth, agentBase, activeFile, onFileSelect, path
       }}
       onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#e2e8f0' } }}
       onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8' } }}>
-      <span>{getIcon(name)}</span>
+      <span className="flex items-center justify-center shrink-0 w-4 h-4">{getIcon(name)}</span>
       <span className="truncate">{name}</span>
     </button>
   )

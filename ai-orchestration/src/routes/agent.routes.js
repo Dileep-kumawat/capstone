@@ -12,7 +12,14 @@ agentRouter.post("/invoke", async (req, res) => {
         'Connection': 'keep-alive'
     });
 
-    const writer = (text) => res.write(text);
+    const writer = (text) => {
+        const lines = text.split('\n');
+        for (const line of lines) {
+            if (line.trim()) {
+                res.write(`act:${line}\n`);
+            }
+        }
+    };
 
     try {
         const stream = await agent.stream(
@@ -32,7 +39,10 @@ agentRouter.post("/invoke", async (req, res) => {
                 const role = m.role ?? m._getType?.();
                 if ((role === 'ai' || role === 'assistant') && !m.tool_calls?.length) {
                     const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
-                    res.write(content + '\n');
+                    const lines = content.split('\n');
+                    for (const line of lines) {
+                        res.write(`msg:${line}\n`);
+                    }
                     break;
                 }
             }
