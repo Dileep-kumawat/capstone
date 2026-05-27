@@ -88,7 +88,6 @@ export default function AiChat({ sandboxId, onFilesChanged }) {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const bottomRef = useRef(null)
-  const esRef = useRef(null)
   const textareaRef = useRef(null)
 
   useEffect(() => {
@@ -116,8 +115,10 @@ export default function AiChat({ sandboxId, onFilesChanged }) {
       // Use fetch with SSE manually
       const response = await fetch('/api/ai/invoke', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ message: text, projectId: sandboxId })
       })
 

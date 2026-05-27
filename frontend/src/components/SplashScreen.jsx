@@ -16,7 +16,11 @@ export default function SplashScreen({ onSandboxCreated }) {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch('/api/sandbox/project', { credentials: 'include' })
+        const res = await fetch('/api/sandbox/project', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
         if (res.ok) {
           const data = await res.json()
           setProjects(data.projects || [])
@@ -46,8 +50,10 @@ export default function SplashScreen({ onSandboxCreated }) {
     try {
       const sandboxRes = await fetch('/api/sandbox/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ projectId })
       })
       if (!sandboxRes.ok) throw new Error(`Failed to start sandbox (${sandboxRes.status})`)
@@ -73,8 +79,10 @@ export default function SplashScreen({ onSandboxCreated }) {
       setLoadingStep('project')
       const projectRes = await fetch('/api/sandbox/project', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ title: projectTitle })
       })
       if (!projectRes.ok) throw new Error(`Failed to create project (${projectRes.status})`)
@@ -85,8 +93,10 @@ export default function SplashScreen({ onSandboxCreated }) {
       setLoadingStep('sandbox')
       const sandboxRes = await fetch('/api/sandbox/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ projectId })
       })
       if (!sandboxRes.ok) throw new Error(`Failed to start sandbox (${sandboxRes.status})`)
@@ -126,13 +136,13 @@ export default function SplashScreen({ onSandboxCreated }) {
         <div key={i}
           className="absolute rounded-full opacity-20"
           style={{
-            width: Math.random() * 4 + 2 + 'px',
-            height: Math.random() * 4 + 2 + 'px',
+            width: `${((i * 3) % 4) + 2}px`,
+            height: `${((i * 3) % 4) + 2}px`,
             background: '#22d3ee',
-            left: Math.random() * 100 + '%',
-            top: Math.random() * 100 + '%',
-            animation: `pulse-glow ${2 + Math.random() * 3}s ease-in-out infinite`,
-            animationDelay: Math.random() * 2 + 's'
+            left: `${((i * 17) % 90) + 5}%`,
+            top: `${((i * 23) % 90) + 5}%`,
+            animation: `pulse-glow ${(i % 3) + 2}s ease-in-out infinite`,
+            animationDelay: `${(i % 2) * 0.5}s`
           }}
         />
       ))}

@@ -108,7 +108,9 @@ export default function Terminal({ sandboxId }) {
       })
 
     } catch (err) {
-      setError(err.message)
+      setTimeout(() => {
+        setError(err.message)
+      }, 0)
     }
   }, [sandboxId])
 
@@ -126,7 +128,9 @@ export default function Terminal({ sandboxId }) {
   useEffect(() => {
     const observer = new ResizeObserver(() => {
       if (fitAddonRef.current) {
-        try { fitAddonRef.current.fit() } catch (_) {}
+        try { fitAddonRef.current.fit() } catch {
+          // Ignore resize errors if terminal is not fully initialized or visible
+        }
       }
     })
     if (containerRef.current) observer.observe(containerRef.current)

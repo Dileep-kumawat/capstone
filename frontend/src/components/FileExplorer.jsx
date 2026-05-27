@@ -96,18 +96,27 @@ export default function FileExplorer({ agentBase, activeFile, onFileSelect, refr
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${agentBase}/list-files`)
+      const res = await fetch(`${agentBase}/list-files`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
       const data = await res.json()
       setFiles(data.files || [])
       setTree(buildTree(data.files || []))
-    } catch (err) {
+    } catch {
       setError('Failed to load files')
     } finally {
       setLoading(false)
     }
   }, [agentBase])
 
-  useEffect(() => { fetchFiles() }, [fetchFiles, refreshKey])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchFiles()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [fetchFiles, refreshKey])
 
   return (
     <aside className="flex flex-col h-full"

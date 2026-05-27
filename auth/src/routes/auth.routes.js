@@ -43,12 +43,12 @@ router.get('/google/callback', passport.authenticate('google', {
         // Set token in cookie
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-            domain: "localhost",
+            secure: false,
+            sameSite: 'Lax',
+            // domain: "localhost",
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
-        res.redirect('http://localhost:5173'); // Redirect to your frontend after successful login
+        res.redirect(`http://localhost:5173/auth/callback?token=${token}`); // Redirect to your frontend after successful login
     } catch (err) {
         console.error('Error during Google authentication:', err);
         res.redirect('http://localhost:5173'); // Redirect to your frontend on error
