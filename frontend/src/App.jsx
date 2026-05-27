@@ -101,7 +101,7 @@ export default function App() {
             {activeTab === 'preview' ? (
               <PreviewFrame previewUrl={previewUrl} podReady={podReady} />
             ) : (
-              <FileViewer agentBase={agentBase} filePath={activeFile} />
+              <FileViewer agentBase={agentBase} filePath={activeFile} onFileSaved={handleFilesChanged} />
             )}
           </div>
 
