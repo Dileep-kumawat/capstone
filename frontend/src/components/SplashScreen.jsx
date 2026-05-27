@@ -12,6 +12,7 @@ export default function SplashScreen({ onSandboxCreated }) {
   // Existing projects
   const [ projects, setProjects ] = useState([])
   const [ projectsLoading, setProjectsLoading ] = useState(true)
+  const [ showDropdown, setShowDropdown ] = useState(false)
 
   // Fetch existing projects on mount
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function SplashScreen({ onSandboxCreated }) {
   const isAnyLoading = loading || loadingProjectId !== null
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-full w-full overflow-hidden">
+    <div className="relative flex flex-col items-center h-full w-full overflow-y-auto">
       {/* Background grid */}
       <div className="absolute inset-0 pointer-events-none"
         style={{
@@ -142,7 +143,7 @@ export default function SplashScreen({ onSandboxCreated }) {
       ))}
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center gap-8 px-6 text-center animate-fadeIn w-full" style={{ maxWidth: '480px' }}>
+      <div className="relative z-10 flex flex-col items-center gap-8 px-6 text-center animate-fadeIn w-full py-12" style={{ maxWidth: '480px', minHeight: '100%', justifyContent: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {/* Logo / Icon */}
         <div className="relative">
           <div className="w-20 h-20 rounded-2xl flex items-center justify-center"
@@ -193,78 +194,6 @@ export default function SplashScreen({ onSandboxCreated }) {
             </span>
           ))}
         </div>
-
-        {/* Existing projects list */}
-        {!isAnyLoading && (
-          <>
-            {projectsLoading ? (
-              <div className="w-full flex justify-center py-2">
-                <div className="w-4 h-4 rounded-full border-2 border-t-transparent"
-                  style={{ borderColor: 'rgba(34,211,238,0.4)', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
-              </div>
-            ) : projects.length > 0 && (
-              <div className="w-full" style={{ maxWidth: '420px' }}>
-                <p className="text-xs font-medium uppercase tracking-widest mb-3 text-left" style={{ color: '#475569' }}>
-                  Recent Projects
-                </p>
-                <div className="flex flex-col gap-2">
-                  {projects.map(project => (
-                    <button
-                      key={project._id}
-                      onClick={() => handleOpenProject(project._id)}
-                      disabled={isAnyLoading}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 cursor-pointer group"
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid #1e2d45',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = 'rgba(34,211,238,0.05)'
-                        e.currentTarget.style.borderColor = 'rgba(34,211,238,0.25)'
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
-                        e.currentTarget.style.borderColor = '#1e2d45'
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.15)' }}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2">
-                            <rect x="3" y="3" width="7" height="7" rx="1"/>
-                            <rect x="14" y="3" width="7" height="7" rx="1"/>
-                            <rect x="3" y="14" width="7" height="7" rx="1"/>
-                            <rect x="14" y="14" width="7" height="7" rx="1"/>
-                          </svg>
-                        </div>
-                        <span className="text-sm font-medium" style={{ color: '#cbd5e1' }}>{project.title}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {loadingProjectId === project._id ? (
-                          <div className="w-4 h-4 rounded-full border-2 border-t-transparent"
-                            style={{ borderColor: '#22d3ee', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
-                        ) : (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2"
-                            style={{ transition: 'stroke 0.2s' }}
-                            className="group-hover:stroke-cyan-400">
-                            <polygon points="5 3 19 12 5 21 5 3"/>
-                          </svg>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Divider */}
-                <div className="flex items-center gap-3 my-5">
-                  <div className="flex-1 h-px" style={{ background: '#1e2d45' }} />
-                  <span className="text-xs" style={{ color: '#334155' }}>or create new</span>
-                  <div className="flex-1 h-px" style={{ background: '#1e2d45' }} />
-                </div>
-              </div>
-            )}
-          </>
-        )}
 
         {/* New project input + CTA */}
         {!isAnyLoading ? (
@@ -332,6 +261,111 @@ export default function SplashScreen({ onSandboxCreated }) {
                   ? 'Registering your project…'
                   : 'Spinning up your isolated environment…'}
             </p>
+          </div>
+        )}
+
+        {/* Existing projects — dropdown */}
+        {!isAnyLoading && projects.length > 0 && (
+          <div className="w-full" style={{ maxWidth: '420px' }}>
+            {/* Toggle button */}
+            <button
+              onClick={() => setShowDropdown(v => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
+              style={{
+                background: showDropdown ? 'rgba(34,211,238,0.06)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${showDropdown ? 'rgba(34,211,238,0.3)' : '#1e2d45'}`,
+              }}
+              onMouseEnter={e => {
+                if (!showDropdown) {
+                  e.currentTarget.style.background = 'rgba(34,211,238,0.04)'
+                  e.currentTarget.style.borderColor = 'rgba(34,211,238,0.2)'
+                }
+              }}
+              onMouseLeave={e => {
+                if (!showDropdown) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+                  e.currentTarget.style.borderColor = '#1e2d45'
+                }
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.15)' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                </div>
+                <span className="text-sm font-medium" style={{ color: '#94a3b8' }}>
+                  Open Existing Project
+                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.2)' }}>
+                    {projects.length}
+                  </span>
+                </span>
+              </div>
+              {/* Chevron */}
+              <svg
+                width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2"
+                style={{ transition: 'transform 0.25s ease', transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {/* Dropdown panel */}
+            <div style={{
+              overflow: 'hidden',
+              maxHeight: showDropdown ? `${projects.length * 60}px` : '0px',
+              opacity: showDropdown ? 1 : 0,
+              transition: 'max-height 0.3s ease, opacity 0.25s ease',
+            }}>
+              <div className="flex flex-col gap-2 pt-2">
+                {projects.map(project => (
+                  <button
+                    key={project._id}
+                    onClick={() => { setShowDropdown(false); handleOpenProject(project._id) }}
+                    disabled={isAnyLoading}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 cursor-pointer group"
+                    style={{
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid #1e2d45',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'rgba(34,211,238,0.05)'
+                      e.currentTarget.style.borderColor = 'rgba(34,211,238,0.25)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
+                      e.currentTarget.style.borderColor = '#1e2d45'
+                    }}
+                  >
+                    <span className="text-sm font-medium" style={{ color: '#cbd5e1' }}>{project.title}</span>
+                    <div className="flex items-center gap-2">
+                      {loadingProjectId === project._id ? (
+                        <div className="w-4 h-4 rounded-full border-2 border-t-transparent"
+                          style={{ borderColor: '#22d3ee', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2"
+                          style={{ transition: 'stroke 0.2s' }}
+                          className="group-hover:stroke-cyan-400">
+                          <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Projects loading indicator */}
+        {!isAnyLoading && projectsLoading && (
+          <div className="w-full flex justify-center py-2">
+            <div className="w-4 h-4 rounded-full border-2 border-t-transparent"
+              style={{ borderColor: 'rgba(34,211,238,0.4)', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
           </div>
         )}
 

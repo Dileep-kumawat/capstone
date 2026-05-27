@@ -70,6 +70,27 @@ export default function TopBar({ sandboxId, activeTab, onTabChange, status }) {
 
       {/* Right — status & profile */}
       <div className="flex items-center gap-4">
+        {/* Home / Refresh button */}
+        <button
+          onClick={() => window.location.href = '/'}
+          title="Go to Home"
+          className="flex items-center justify-center w-7 h-7 rounded transition-all duration-200 cursor-pointer"
+          style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.15)', color: '#64748b' }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(34,211,238,0.12)';
+            e.currentTarget.style.borderColor = 'rgba(34,211,238,0.35)';
+            e.currentTarget.style.color = '#22d3ee';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(34,211,238,0.06)';
+            e.currentTarget.style.borderColor = 'rgba(34,211,238,0.15)';
+            e.currentTarget.style.color = '#64748b';
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
+        </button>
         {/* Status */}
         <div className="flex items-center gap-1.5">
           {s.dot ? (
