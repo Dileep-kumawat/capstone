@@ -98,3 +98,4 @@
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-spin { animation: spin 1s linear infinite; }
 .animate-slideInRight { animation: slideInRight 0.25s ease forwards; }
+.animate-typing-dot { animation: typing-dot 1.2s ease-in-out infinite; }

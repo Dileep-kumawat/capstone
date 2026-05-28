@@ -6,10 +6,9 @@ function TypingIndicator() {
   return (
     <div className="flex items-center gap-1 px-3 py-2">
       {[0, 1, 2].map(i => (
-        <div key={i} className="w-1.5 h-1.5 rounded-full"
+        <div key={i} className="w-1.5 h-1.5 rounded-full animate-typing-dot"
           style={{
             background: '#22d3ee',
-            animation: 'typing-dot 1.2s ease-in-out infinite',
             animationDelay: `${i * 0.2}s`
           }} />
       ))}
@@ -92,7 +91,10 @@ function Message({ msg }) {
         </div>
       )}
       <div className="max-w-[85%]">
-        <div className="px-3 py-2 rounded-xl text-sm leading-relaxed"
+        {msg.activity && msg.activity.length > 0 && (
+          <ActivityLog lines={msg.activity} />
+        )}
+        <div className={`px-3 py-2 rounded-xl text-sm leading-relaxed ${(!isUser && msg.activity && msg.activity.length > 0) ? 'mt-2' : ''}`}
           style={isUser ? {
             background: 'linear-gradient(135deg, rgba(34,211,238,0.15), rgba(8,145,178,0.08))',
             border: '1px solid rgba(34,211,238,0.25)',
@@ -107,12 +109,21 @@ function Message({ msg }) {
           }}>
           {isUser
             ? msg.content
-            : <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+            : msg.content === '…'
+              ? (
+                <div className="flex items-center gap-1 py-1">
+                  {[0, 1, 2].map(i => (
+                    <div key={i} className="w-1.5 h-1.5 rounded-full animate-typing-dot"
+                      style={{
+                        background: '#22d3ee',
+                        animationDelay: `${i * 0.2}s`
+                      }} />
+                  ))}
+                </div>
+              )
+              : <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
           }
         </div>
-        {msg.activity && msg.activity.length > 0 && (
-          <ActivityLog lines={msg.activity} />
-        )}
         <div className="text-xs mt-1 px-1" style={{ color: '#334155' }}>
           {new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
