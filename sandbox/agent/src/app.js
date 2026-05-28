@@ -7,6 +7,8 @@ import http from 'http';
 import pty from 'node-pty';
 import os from 'os';
 import cors from 'cors';
+import AdmZip from 'adm-zip';
+
 
 
 const WORKING_DIR = '/workspace';
@@ -253,6 +255,52 @@ app.post("/create-files", async (req, res) => {
         results,
     });
 })
+
+
+/**
+ * @route GET /download
+ * @description Bundles all files inside the workspace (excluding node_modules, .git, and dist) into a ZIP archive and streams it to the client.
+ */
+app.get("/download", async (req, res) => {
+    try {
+        const zip = new AdmZip();
+        
+        const addFolderToZip = async (dir, zipDir = '') => {
+            const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+            
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                const zipPath = zipDir ? path.join(zipDir, entry.name) : entry.name;
+                
+                if (entry.isDirectory()) {
+                    // Exclude heavy directories
+                    if (['node_modules', '.git', 'dist'].includes(entry.name)) {
+                        continue;
+                    }
+                    await addFolderToZip(fullPath, zipPath);
+                } else {
+                    const content = await fs.promises.readFile(fullPath);
+                    zip.addFile(zipPath, content);
+                }
+            }
+        };
+
+        await addFolderToZip(WORKING_DIR);
+        
+        const zipBuffer = zip.toBuffer();
+        
+        const customFileName = req.query.name || 'project';
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', `attachment; filename="${customFileName}.zip"`);
+        res.send(zipBuffer);
+    } catch (err) {
+        console.error('Error generating ZIP download:', err);
+        res.status(500).json({
+            message: `Error generating download: ${err.message}`,
+            status: 'error',
+        });
+    }
+});
 
 
 export default httpServer;

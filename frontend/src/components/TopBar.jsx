@@ -1,8 +1,35 @@
+import { useState } from 'react'
 import { useAuth } from './AuthContext'
+import { apiFetch } from '../utils/api'
 
-export default function TopBar({ sandboxId, activeTab, onTabChange, status }) {
+export default function TopBar({ sandboxId, agentBase, activeTab, onTabChange, status }) {
   const { user, logout } = useAuth()
   const shortId = sandboxId ? sandboxId.slice(0, 8) + '…' : ''
+  const [downloading, setDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    if (downloading || !agentBase) return
+    setDownloading(true)
+    try {
+      const res = await apiFetch(`${agentBase}/download?name=codespace-${sandboxId.slice(0, 8)}`)
+      if (!res.ok) throw new Error('Download failed')
+      
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `codespace-${sandboxId.slice(0, 8)}.zip`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Error downloading project:', err)
+      alert('Failed to bundle project code. Please try again.')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   const statusConfig = {
     ready: { color: '#10b981', label: 'Ready', dot: true },
@@ -91,6 +118,52 @@ export default function TopBar({ sandboxId, activeTab, onTabChange, status }) {
             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
           </svg>
         </button>
+        {/* Download Code button */}
+        {sandboxId && (
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            title="Download Project (ZIP)"
+            className="flex items-center justify-center gap-1.5 px-3 h-7 rounded text-xs transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              background: 'linear-gradient(135deg, rgba(34,211,238,0.1), rgba(8,145,178,0.05))',
+              border: '1px solid rgba(34,211,238,0.2)',
+              color: '#22d3ee',
+              fontWeight: 500
+            }}
+            onMouseEnter={e => {
+              if (!downloading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(34,211,238,0.2), rgba(8,145,178,0.1))';
+                e.currentTarget.style.borderColor = 'rgba(34,211,238,0.45)';
+                e.currentTarget.style.boxShadow = '0 0 10px rgba(34,211,238,0.25)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!downloading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(34,211,238,0.1), rgba(8,145,178,0.05))';
+                e.currentTarget.style.borderColor = 'rgba(34,211,238,0.2)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+          >
+            {downloading ? (
+              <>
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin"
+                  style={{ borderColor: '#22d3ee', borderTopColor: 'transparent' }} />
+                <span style={{ color: '#22d3ee' }}>Zipping…</span>
+              </>
+            ) : (
+              <>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.2s' }}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Download Code</span>
+              </>
+            )}
+          </button>
+        )}
         {/* Status */}
         <div className="flex items-center gap-1.5">
           {s.dot ? (

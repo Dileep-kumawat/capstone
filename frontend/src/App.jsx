@@ -84,6 +84,7 @@ export default function App() {
       {/* Top bar */}
       <TopBar
         sandboxId={sandboxId}
+        agentBase={agentBase}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         status={status}
